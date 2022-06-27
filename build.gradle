@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+}
+
+apply plugin: 'echo-server'
+
+group 'io.spring.gradle.example'
+version '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    implementation "org.codehaus.groovy:groovy-all:$groovyVersion"
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+    testImplementation "org.assertj:assertj-core:$assertjVersion"
+
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+}
+
+test {
+    testLogging.showStandardStreams(true)
+    useJUnitPlatform()
+}

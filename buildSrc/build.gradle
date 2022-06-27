@@ -1,0 +1,17 @@
+plugins {
+	id 'java-gradle-plugin'
+	id 'java'
+	id 'groovy'
+}
+
+repositories {
+	mavenCentral()
+	gradlePluginPortal()
+	maven {
+		url 'https://repo.spring.io/plugins-release/'
+	}
+}
+
+dependencies {
+	localGroovy()
+}
