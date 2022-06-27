@@ -129,3 +129,8 @@ This naturally leads to a `ClassNotFoundException` on the `EchoOne` class.
 The reason why a project-specific, custom Gradle Plugin might want to fork an instance of a project domain class,
 like the `EchoOne` server class, is simply because the configuration of such the server (beyond just the `port`
 used in this example, e.g. `host`) might also be custom per test execution.
+
+[[references]]
+== References
+
+* Gradle https://github.com/gradle/gradle/issues/2488[Issue #2488] - "_`gradle clean build` can run clean after tasks that produce output by depending on other tasks_"
