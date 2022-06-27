@@ -1,0 +1,120 @@
+= Echo Client/Server
+
+This simple Gradle project defines an Echo server class,
+named https://github.com/jxblum/gradle-plugin-task-execution-tests/blob/master/src/main/java/example/app/echo/server/EchoOne.java[`EchoOne`],
+written in Java, that simply echos any message sent to the server from an Echo client, such as
+the https://github.com/jxblum/gradle-plugin-task-execution-tests/blob/master/src/test/java/example/app/echo/client/EchoClientTests.java[`EchoClientTests`] class.
+
+During the Gradle build, the configuration and startup for the Echo server is encapsulated in a custom Gradle Plugin,
+named https://github.com/jxblum/gradle-plugin-task-execution-tests/blob/master/buildSrc/src/main/groovy/example/gradle/plugin/echo/EchoServerPlugin.groovy[`EchoServerPlugin`].
+
+The `EchoServerPlugin` is applied to the project, https://github.com/jxblum/gradle-plugin-task-execution-tests/blob/master/build.gradle#L5[here].
+
+This projects uses Gradle `7.4.2` (see https://github.com/jxblum/gradle-plugin-task-execution-tests/blob/master/gradle/wrapper/gradle-wrapper.properties#L3[here]).
+
+[[build-success]]
+== BUILD SUCCESS
+
+When the Gradle project is simply executed with:
+
+[source,txt]
+----
+$ gradlew --no-daemon build
+----
+
+Or, using a `clean`, `build` separately, like so:
+
+[source,txt]
+----
+$ gradlew --no-daemon clean
+$ gradlew --no-daemon build
+----
+
+All builds, tests and runs as expected.
+
+
+[source,txt]
+----
+$ gradlew --no-daemon clean
+To honour the JVM settings for this build a single-use Daemon process will be forked. See https://docs.gradle.org/7.4.2/userguide/gradle_daemon.html#sec:disabling_the_daemon.
+Daemon will be stopped at the end of the build
+
+BUILD SUCCESSFUL in 4s
+7 actionable tasks: 1 executed, 6 up-to-date
+
+$ gradlew --no-daemon build
+To honour the JVM settings for this build a single-use Daemon process will be forked. See https://docs.gradle.org/7.4.2/userguide/gradle_daemon.html#sec:disabling_the_daemon.
+Daemon will be stopped at the end of the build
+
+> Task :echoServer
+Starting Echo server on port [55667]...
+EchoOne server running, listening on port [55667]
+
+[server] ECHO CLIENT: 'Hello Test!'
+
+> Task :test
+
+EchoClientTests > serverEchosClientMessage() STANDARD_ERROR
+    [client] ECHO SERVER: 'Hello Test!'
+
+Stopping Echo server listening on port [55667]...
+
+BUILD SUCCESSFUL in 5s
+11 actionable tasks: 5 executed, 6 up-to-date
+----
+
+
+[[build-failure]]
+== BUILD FAILURE
+
+However, if the Gradle project is built with `clean`, `build` in a single `gradlew` execution using Gradle `7.4.2`,
+then the Gradle project build will fail:
+
+[source,txt]
+----
+$ gradlew --no-daemon clean build
+To honour the JVM settings for this build a single-use Daemon process will be forked. See https://docs.gradle.org/7.4.2/userguide/gradle_daemon.html#sec:disabling_the_daemon.
+Daemon will be stopped at the end of the build
+
+> Task :echoServer
+Starting Echo server on port [55682]...
+Error: Could not find or load main class example.app.echo.server.EchoOne
+Caused by: java.lang.ClassNotFoundException: example.app.echo.server.EchoOne
+
+> Task :test FAILED
+
+EchoClientTests > serverEchosClientMessage() FAILED
+    java.net.ConnectException at EchoClientTests.java:42
+
+1 test completed, 1 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':test'.
+> There were failing tests. See the report at: file:///Users/jblum/pivdev/gradle-plugin-task-execution-tests/build/reports/tests/test/index.html
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+
+* Get more help at https://help.gradle.org
+
+BUILD FAILED in 6s
+12 actionable tasks: 6 executed, 6 up-to-date
+----
+
+By adding the `clean` task to the Gradle project build, it causes the premature execution of the `EchoServerTask`
+(https://github.com/jxblum/gradle-plugin-task-execution-tests/blob/master/buildSrc/src/main/groovy/example/gradle/plugin/echo/EchoServerPlugin.groovy#L29-L63[source])
+defined inside of the `EchoServerPlugin`.
+
+However, the project class used to fork and start the Echo server (i.e. https://github.com/jxblum/gradle-plugin-task-execution-tests/blob/master/src/main/java/example/app/echo/server/EchoOne.java[`EchoOne`])
+is a formal domain class of the **Echo Client/Server** project source.
+
+This naturally leads to a `ClassNotFoundException` on the `EchoOne` class.
+
+The reason why a project-specific, custom Gradle Plugin might want to fork an instance of a project domain class,
+like the `EchoOne` server class, is simply because the configuration of such the server (beyond just the `port`
+used in this example, e.g. `host`) might also be custom per test execution.
+
