@@ -63,6 +63,18 @@ BUILD SUCCESSFUL in 5s
 11 actionable tasks: 5 executed, 6 up-to-date
 ----
 
+The order of Gradle build task execution is:
+
+* build `buildSrc/`
+* `compileJava`
+* `compileTestJava`
+* `test`
+** Start `EchoOne` server
+** Run `EchoClientTests`
+** Stop `EchoOne` server
+
+However, before the project tests run, the `EchoOne` server is started, the tests are run, and finally,
+the `EchoOne` server is stopped appropriately.
 
 [[build-failure]]
 == BUILD FAILURE
@@ -117,4 +129,3 @@ This naturally leads to a `ClassNotFoundException` on the `EchoOne` class.
 The reason why a project-specific, custom Gradle Plugin might want to fork an instance of a project domain class,
 like the `EchoOne` server class, is simply because the configuration of such the server (beyond just the `port`
 used in this example, e.g. `host`) might also be custom per test execution.
-
