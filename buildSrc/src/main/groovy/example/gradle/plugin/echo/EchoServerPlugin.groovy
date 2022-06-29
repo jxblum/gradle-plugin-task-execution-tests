@@ -3,6 +3,8 @@ package example.gradle.plugin.echo
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
@@ -12,7 +14,9 @@ class EchoServerPlugin implements Plugin<Project> {
 	@Override
 	void apply(Project project) {
 
-		EchoServerTask echoServerTask = project.tasks.create('echoServer', EchoServerTask)
+		EchoServerTask echoServerTask = project.tasks.create('echoServer', EchoServerTask) {
+			classpath.from(project.sourceSets.main.runtimeClasspath)
+		}
 
 		project.tasks.findByName("test")?.configure { testTask ->
 			testTask.dependsOn echoServerTask
@@ -27,6 +31,9 @@ class EchoServerPlugin implements Plugin<Project> {
 	}
 
 	static class EchoServerTask extends DefaultTask {
+
+		@InputFiles
+		final ConfigurableFileCollection classpath = project.objects.fileCollection()
 
 		@Internal
 		def echoServerClassName = "example.app.echo.server.EchoOne"
@@ -45,7 +52,7 @@ class EchoServerPlugin implements Plugin<Project> {
 			this.port = findAvailablePort()
 			println "Starting Echo server on port [$this.port]..."
 
-			String classpath = project.sourceSets.main.runtimeClasspath.collect { it }.join(File.pathSeparator)
+			String classpath = classpath.join(File.pathSeparator)
 			String javaHome = appendFileSeparator(init(System.getProperty("java.home"), System.getenv("JAVA_HOME")))
 			String javaCommand = javaHome + "bin" + File.separator + "java"
 
